@@ -349,10 +349,10 @@ const AAR = {
 };
 
 const BND_RUK = {
-  "2026/27": { basicBand: 37700, higher: 112570, rHigher: 0.40, rTop: 0.45 },
-  "2025/26": { basicBand: 37700, higher: 112570, rHigher: 0.40, rTop: 0.45 },
-  "2024/25": { basicBand: 37700, higher: 112570, rHigher: 0.40, rTop: 0.45 },
-  "2023/24": { basicBand: 37700, higher: 112570, rHigher: 0.40, rTop: 0.45 },
+  "2026/27": { basicBand: 37700, higher: 125140, rHigher: 0.40, rTop: 0.45 },
+  "2025/26": { basicBand: 37700, higher: 125140, rHigher: 0.40, rTop: 0.45 },
+  "2024/25": { basicBand: 37700, higher: 125140, rHigher: 0.40, rTop: 0.45 },
+  "2023/24": { basicBand: 37700, higher: 125140, rHigher: 0.40, rTop: 0.45 },
   "2022/23": { basicBand: 37700, higher: 137430, rHigher: 0.40, rTop: 0.45 }, // особливий поріг
 };
 
