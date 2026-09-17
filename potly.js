@@ -357,11 +357,11 @@ const BND_RUK = {
 };
 
 const BND_SCOT = {
-  "2026/27": { starter: 3967, basic: 16956, inter: 31092, higher: 62430, advanced: 112570, rHigher: 0.42, rAdvanced: 0.45, rTop: 0.48 },
-  "2025/26": { starter: 2827, basic: 14921, inter: 31092, higher: 62430, advanced: 112570, rHigher: 0.42, rAdvanced: 0.45, rTop: 0.48 },
-  "2024/25": { starter: 2306, basic: 13991, inter: 31092, higher: 62430, advanced: 112570, rHigher: 0.42, rAdvanced: 0.45, rTop: 0.48 },
-  "2023/24": { starter: 2162, basic: 13118, inter: 31092, higher: 112570, advanced: null,   rHigher: 0.42, rAdvanced: null, rTop: 0.47 },
-  "2022/23": { starter: 2162, basic: 13118, inter: 31092, higher: 137430, advanced: null,   rHigher: 0.41, rAdvanced: null, rTop: 0.46 },
+  "2026/27": { starter: 3967, basic: 16956, inter: 31092, higher: 62430, advanced: 125140, rHigher: 0.42, rAdvanced: 0.45, rTop: 0.48 },
+  "2025/26": { starter: 2827, basic: 14921, inter: 31092, higher: 62430, advanced: 125140, rHigher: 0.42, rAdvanced: 0.45, rTop: 0.48 },
+  "2024/25": { starter: 2306, basic: 13991, inter: 31092, higher: 62430, advanced: 125140, rHigher: 0.42, rAdvanced: 0.45, rTop: 0.48 },
+  "2023/24": { starter: 2162, basic: 13118, inter: 31092, higher: 125140, advanced: null,   rHigher: 0.42, rAdvanced: null, rTop: 0.47 },
+  "2022/23": { starter: 2162, basic: 13118, inter: 31092, higher: 150000, advanced: null,   rHigher: 0.41, rAdvanced: null, rTop: 0.46 },
 };
 
 
@@ -393,7 +393,7 @@ function calcTaxScot(taxable, year, extension = 0) {
   let rem = taxable;
   let tax = 0;
 
-  const s  = band.starter  + extension;
+  const s  = band.starter;
   const bs = band.basic    + extension;
   const it = band.inter    + extension;
   const hr = band.higher   + extension;
