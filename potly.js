@@ -2518,21 +2518,21 @@ function validateCurrentStep() {
       const data =
         state.years[year] || {};
 
-      const requiredKeys = [
-        "grossAnnualSalary",
-        "employeeContribution",
-        "employerContribution"
-      ];
+      // Gross salary is always required
+      if (!data.grossAnnualSalary || Number(data.grossAnnualSalary) <= 0) {
+        isValid = false;
+      }
 
-      requiredKeys.forEach(key => {
+      // At least ONE contribution must be present (SIPP, employee, or employer).
+      // This supports SIPP-only, workplace-RAS-only, or both.
+      const anyContribution =
+        (Number(data.pensionSIPP) || 0) > 0 ||
+        (Number(data.employeeContribution) || 0) > 0 ||
+        (Number(data.employerContribution) || 0) > 0;
 
-        if (!data[key]) {
-
-          isValid = false;
-
-        }
-
-      });
+      if (!anyContribution) {
+        isValid = false;
+      }
 
       const hasScheme =
         data.pensionScheme &&
