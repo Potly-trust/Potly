@@ -1422,7 +1422,6 @@ function getReviewCardTemplate(year) {
 
             <input
             name="employerContribution[${year}]"
-            data-input-required
               type="number"
               class="field left w-input"
               data-year="${year}"
