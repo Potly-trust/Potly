@@ -1458,7 +1458,6 @@ function getReviewCardTemplate(year) {
 
             <input
             name="pensionSIPP[${year}]"
-            data-input-required
               type="number"
               class="field left w-input"
               data-year="${year}"
