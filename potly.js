@@ -1422,6 +1422,7 @@ function getReviewCardTemplate(year) {
 
             <input
             name="employerContribution[${year}]"
+            data-input-required
               type="number"
               class="field left w-input"
               data-year="${year}"
@@ -1457,6 +1458,7 @@ function getReviewCardTemplate(year) {
 
             <input
             name="pensionSIPP[${year}]"
+            data-input-required
               type="number"
               class="field left w-input"
               data-year="${year}"
@@ -2487,20 +2489,11 @@ function validateCurrentStep() {
 
   });
 
-  if (currentStepElement.id === "step4") {
-
-    const selectedRadio =
-      currentStepElement.querySelector(
-        "[data-field='pensionScheme']:checked"
-      );
-
-    if (!selectedRadio) {
-
-      isValid = false;
-
-    }
-
-  }
+  /* step4: the workplace-pension-type question is no longer
+     required. A SIPP-only customer has no workplace pension,
+     so forcing a scheme choice both blocks them and would feed
+     the calculation an irrelevant scheme. It stays available
+     for those who do have a workplace pension. */
 
   if (currentStepElement.id === "step6") {
 
@@ -2517,27 +2510,37 @@ function validateCurrentStep() {
       const data =
         state.years[year] || {};
 
-      // Gross salary is always required
-      if (!data.grossAnnualSalary || Number(data.grossAnnualSalary) <= 0) {
+      /* Gross salary is always required. */
+
+      if (!data.grossAnnualSalary ||
+          Number(data.grossAnnualSalary) <= 0) {
+
         isValid = false;
+
       }
 
-      // At least ONE contribution must be present (SIPP, employee, or employer).
-      // This supports SIPP-only, workplace-RAS-only, or both.
+      /* Either/or: at least one contribution source
+         (SIPP, employee, or employer) must be present. */
+
       const anyContribution =
         (Number(data.pensionSIPP) || 0) > 0 ||
         (Number(data.employeeContribution) || 0) > 0 ||
         (Number(data.employerContribution) || 0) > 0;
 
       if (!anyContribution) {
+
         isValid = false;
+
       }
 
-      const hasScheme =
-        data.pensionScheme &&
-        data.pensionScheme !== "";
+      /* Scheme type only required when there is a workplace
+         contribution (employee or employer). */
 
-      if (!hasScheme) {
+      const hasWorkplace =
+        (Number(data.employeeContribution) || 0) > 0 ||
+        (Number(data.employerContribution) || 0) > 0;
+
+      if (hasWorkplace && !data.pensionScheme) {
 
         isValid = false;
 
