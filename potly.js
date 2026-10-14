@@ -291,6 +291,48 @@ function renderResults(results) {
     }
   );
 
+  // ---- Annual allowance (potential excess) ---------------------------
+  // Writes the specific figures into optional placeholder elements so the
+  // Webflow warning block can show them. All optional: if an element is
+  // absent nothing happens. We never alter the relief total here.
+  const aa = results.annualAllowance;
+
+  if (aa && aa.hasPotentialExcess) {
+
+    const fmt = n => `£${Number(n).toLocaleString()}`;
+
+    // Use the most recent affected year for the headline figures;
+    // total potential excess is summed across all affected years.
+    const latest = aa.years[aa.years.length - 1];
+
+    document
+      .querySelectorAll("[data-aa-excess-amount]")
+      .forEach(el => { el.textContent = fmt(latest.potentialExcess); });
+
+    document
+      .querySelectorAll("[data-aa-gross]")
+      .forEach(el => { el.textContent = fmt(latest.grossContribution); });
+
+    document
+      .querySelectorAll("[data-aa-allowance]")
+      .forEach(el => { el.textContent = fmt(latest.availableAllowance); });
+
+    document
+      .querySelectorAll("[data-aa-total-excess]")
+      .forEach(el => { el.textContent = fmt(aa.totalPotentialExcess); });
+
+    document
+      .querySelectorAll("[data-aa-warning]")
+      .forEach(el => { el.classList.add("active"); });
+
+  } else {
+
+    document
+      .querySelectorAll("[data-aa-warning]")
+      .forEach(el => { el.classList.remove("active"); });
+
+  }
+
 }
 
 
@@ -720,8 +762,15 @@ function calculateReliefBreakdown(txB, txA, totalExt, year, region, relief) {
       additionalRateRelief,
       relief,
       totalRelief: basicRateRelief + relief,
-      eligible: relief > 0 && !aaExcess,
-  
+      // Eligibility is based purely on whether additional relief is due.
+      // An annual allowance excess does NOT make the claim ineligible:
+      // HMRC relief is limited to 100% of relevant UK earnings, not to the
+      // annual allowance (PTM044100). The annual allowance charge on any
+      // excess is a separate matter, assessed via Self Assessment, and is
+      // flagged to the customer (aaExcess / aaExcessAmount) rather than
+      // deducted from the relief claim.
+      eligible: relief > 0,
+
       messages
   
     };
@@ -861,6 +910,30 @@ yearResults.push(result);
         item.relief > 0
     );
 
+  // ---- Annual allowance excess summary --------------------------------
+  // A potential AA excess exists for a year only AFTER tapering, the MPAA
+  // and available carry-forward have been taken into account (see the
+  // per-year calc: availableAA = aa + cfPool, pia includes employer +
+  // employee + SIPP). We surface it as a POTENTIAL excess to flag that the
+  // amount above the allowance may be subject to an annual allowance
+  // charge (a separate matter, dealt with via Self Assessment). We NEVER
+  // cap the relief or deduct an assumed charge — HMRC relief is limited to
+  // 100% of relevant UK earnings, not to the annual allowance (PTM044100).
+  const aaExcessYears =
+    yearResults.filter(item => item.aaExcess && item.aaExcessAmount > 0);
+
+  const annualAllowance = {
+    hasPotentialExcess: aaExcessYears.length > 0,
+    totalPotentialExcess:
+      aaExcessYears.reduce((sum, item) => sum + item.aaExcessAmount, 0),
+    years: aaExcessYears.map(item => ({
+      year: item.year,
+      grossContribution: item.pia,
+      availableAllowance: item.availableAA,
+      potentialExcess: item.aaExcessAmount
+    }))
+  };
+
   return {
 
     selectedYears: state.selectedYears,
@@ -890,6 +963,8 @@ carryForward: {
 },
 
     total,
+
+    annualAllowance,
 
     status:
       hasEligibleYears
@@ -2489,11 +2564,20 @@ function validateCurrentStep() {
 
   });
 
-  /* step4: the workplace-pension-type question is no longer
-     required. A SIPP-only customer has no workplace pension,
-     so forcing a scheme choice both blocks them and would feed
-     the calculation an irrelevant scheme. It stays available
-     for those who do have a workplace pension. */
+  if (currentStepElement.id === "step4") {
+
+    const selectedRadio =
+      currentStepElement.querySelector(
+        "[data-field='pensionScheme']:checked"
+      );
+
+    if (!selectedRadio) {
+
+      isValid = false;
+
+    }
+
+  }
 
   if (currentStepElement.id === "step6") {
 
@@ -2510,37 +2594,27 @@ function validateCurrentStep() {
       const data =
         state.years[year] || {};
 
-      /* Gross salary is always required. */
+      const requiredKeys = [
+        "grossAnnualSalary",
+        "employeeContribution",
+        "employerContribution"
+      ];
 
-      if (!data.grossAnnualSalary ||
-          Number(data.grossAnnualSalary) <= 0) {
+      requiredKeys.forEach(key => {
 
-        isValid = false;
+        if (!data[key]) {
 
-      }
+          isValid = false;
 
-      /* Either/or: at least one contribution source
-         (SIPP, employee, or employer) must be present. */
+        }
 
-      const anyContribution =
-        (Number(data.pensionSIPP) || 0) > 0 ||
-        (Number(data.employeeContribution) || 0) > 0 ||
-        (Number(data.employerContribution) || 0) > 0;
+      });
 
-      if (!anyContribution) {
+      const hasScheme =
+        data.pensionScheme &&
+        data.pensionScheme !== "";
 
-        isValid = false;
-
-      }
-
-      /* Scheme type only required when there is a workplace
-         contribution (employee or employer). */
-
-      const hasWorkplace =
-        (Number(data.employeeContribution) || 0) > 0 ||
-        (Number(data.employerContribution) || 0) > 0;
-
-      if (hasWorkplace && !data.pensionScheme) {
+      if (!hasScheme) {
 
         isValid = false;
 
