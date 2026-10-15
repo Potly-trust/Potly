@@ -2564,20 +2564,11 @@ function validateCurrentStep() {
 
   });
 
-  if (currentStepElement.id === "step4") {
-
-    const selectedRadio =
-      currentStepElement.querySelector(
-        "[data-field='pensionScheme']:checked"
-      );
-
-    if (!selectedRadio) {
-
-      isValid = false;
-
-    }
-
-  }
+  /* step4: the workplace-pension-type question is no longer
+     required. A SIPP-only customer has no workplace pension, so
+     forcing a scheme choice both blocks them and would feed the
+     calculation an irrelevant scheme. It stays available for
+     those who do have a workplace pension. */
 
   if (currentStepElement.id === "step6") {
 
@@ -2594,27 +2585,37 @@ function validateCurrentStep() {
       const data =
         state.years[year] || {};
 
-      const requiredKeys = [
-        "grossAnnualSalary",
-        "employeeContribution",
-        "employerContribution"
-      ];
+      /* Gross salary is always required. */
 
-      requiredKeys.forEach(key => {
+      if (!data.grossAnnualSalary ||
+          Number(data.grossAnnualSalary) <= 0) {
 
-        if (!data[key]) {
+        isValid = false;
 
-          isValid = false;
+      }
 
-        }
+      /* Either/or: at least one contribution source
+         (SIPP, employee, or employer) must be present. */
 
-      });
+      const anyContribution =
+        (Number(data.pensionSIPP) || 0) > 0 ||
+        (Number(data.employeeContribution) || 0) > 0 ||
+        (Number(data.employerContribution) || 0) > 0;
 
-      const hasScheme =
-        data.pensionScheme &&
-        data.pensionScheme !== "";
+      if (!anyContribution) {
 
-      if (!hasScheme) {
+        isValid = false;
+
+      }
+
+      /* Scheme type only required when there is a workplace
+         contribution (employee or employer). */
+
+      const hasWorkplace =
+        (Number(data.employeeContribution) || 0) > 0 ||
+        (Number(data.employerContribution) || 0) > 0;
+
+      if (hasWorkplace && !data.pensionScheme) {
 
         isValid = false;
 
